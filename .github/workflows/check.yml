@@ -1,0 +1,53 @@
+name: Test and build c_Obsidian
+on:
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -B tools/check.py --report evidence/local-checks.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: checks-${{ matrix.os }}
+          path: evidence/local-checks.json
+  container:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build linux amd64 image
+        run: docker build --platform linux/amd64 -t c-obsidian:0.2.0 .
+      - name: Validate both proxy configurations
+        run: |
+          docker run --rm --entrypoint caddy c-obsidian:0.2.0 validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm --entrypoint caddy c-obsidian:0.2.0 validate --config /etc/caddy/Caddyfile.shared --adapter caddyfile
+      - name: Provision disposable CI account and start isolated container
+        run: |
+          docker run --rm -v ci-obsidian-state:/state --entrypoint python c-obsidian:0.2.0 -c "from auth_store import create_user; create_user('/state','CiUser','ci-only-disposable-password')"
+          docker run -d --name obsidian-ci -e OBSIDIAN_SHARED_GATEWAY=1 -v ci-obsidian-state:/state -p 127.0.0.1:18766:8080 c-obsidian:0.2.0
+          for attempt in $(seq 1 30); do if curl --fail --silent -H 'Host: obsidian.ms8at.by' http://127.0.0.1:18766/api/health >/dev/null; then break; fi; sleep 1; done
+      - name: Exercise real HTTP endpoints through Caddy and Gunicorn
+        run: python -B tools/smoke_http.py --base-url http://127.0.0.1:18766
+      - name: Export RouterOS image and checksum
+        run: |
+          mkdir -p deliverables
+          docker save c-obsidian:0.2.0 | gzip > deliverables/c-obsidian-0.2.0-linux-amd64.tar.gz
+          sha256sum deliverables/c-obsidian-0.2.0-linux-amd64.tar.gz > deliverables/SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: routeros-container-amd64
+          path: deliverables/
+          retention-days: 14
+      - name: Stop disposable container
+        if: always()
+        run: docker rm -f obsidian-ci || true

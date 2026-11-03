@@ -1,0 +1,15 @@
+.git
+.github
+__pycache__
+*.pyc
+.env*
+state
+data
+vault
+evidence
+deliverables
+*.sqlite*
+*.key
+accounts.json
+sessions.*
+tests

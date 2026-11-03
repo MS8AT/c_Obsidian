@@ -1,0 +1,17 @@
+{
+    admin off
+    log {
+        level ERROR
+    }
+}
+
+# For an existing HTTPS gateway. Keep this port private on the container bridge.
+http://:8080 {
+    @wrong_host not host {$OBSIDIAN_DOMAIN:obsidian.ms8at.by}
+    respond @wrong_host 403
+    encode gzip
+    request_body {
+        max_size 24MB
+    }
+    reverse_proxy 127.0.0.1:8765
+}

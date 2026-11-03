@@ -1,0 +1,22 @@
+services:
+  obsidian:
+    build: .
+    image: c-obsidian:0.2.0
+    container_name: c-obsidian
+    restart: unless-stopped
+    ports:
+      - "80:8080"
+      - "443:8443"
+    environment:
+      OBSIDIAN_DOMAIN: obsidian.ms8at.by
+      OBSIDIAN_SECURE: "1"
+    volumes:
+      - obsidian-vault:/vault
+      - obsidian-state:/state
+      - obsidian-certificates:/data
+      - obsidian-config:/config
+volumes:
+  obsidian-vault:
+  obsidian-state:
+  obsidian-certificates:
+  obsidian-config:

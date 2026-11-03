@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>c_Obsidian · Idea Atlas</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+<aside class="sidebar">
+ <a class="brand" href="/" aria-label="c Obsidian"><span class="gem">◈</span> c_Obsidian <small data-i18n="atlas"></small></a>
+ <div class="space-label" data-i18n="workspace"></div><div class="vault-name" id="vault-name">…</div>
+ <div class="space-label" data-i18n="views"></div><nav id="views">
+ <button data-view="emergence" class="active"><span>↟</span><span data-i18n="emergenceName"></span><small>01</small></button>
+ <button data-view="starfield"><span>✧</span><span data-i18n="starfieldName"></span><small>02</small></button>
+ <button data-view="gravity"><span>◎</span><span data-i18n="gravityName"></span><small>03</small></button>
+ <button data-view="sensemakers"><span>⊞</span><span data-i18n="sensemakersName"></span><small>04</small></button>
+ <button data-view="photos"><span>▧</span><span data-i18n="photos"></span><small>05</small></button></nav>
+ <div class="side-bottom"><div class="local-dot"><i></i><span data-i18n="local"></span></div><p data-i18n="privacy"></p><a href="https://github.com/nickmilo/ideaverse-maps" target="_blank" rel="noreferrer" data-i18n="inspiration"></a><small>c_Obsidian 0.1 · <span data-i18n="localEdition"></span></small></div>
+</aside>
+<main>
+ <header><div class="breadcrumb"><span class="atlas-name" data-i18n="atlas"></span><span>/</span><b id="view-crumb"></b></div><div class="actions"><div class="language-switch" role="group" aria-label="Language / Язык / 语言"><span aria-hidden="true">◎</span><button type="button" data-language="ru" aria-label="Русский" title="Русский" aria-pressed="true">RU</button><button type="button" data-language="en" aria-label="English" title="English" aria-pressed="false">EN</button><button type="button" data-language="zh" aria-label="简体中文" title="简体中文" aria-pressed="false">中文</button></div><button id="refresh" class="quiet" data-i18n="refresh"></button><button id="new-note" class="primary" data-i18n="newNote"></button><button id="logout" class="quiet" hidden data-i18n="logout"></button></div></header>
+ <section class="heading"><div><div class="eyebrow" data-i18n="eyebrow"></div><h1 id="view-title"></h1><p id="view-description"></p></div><span class="edition" data-i18n="edition"></span></section>
+ <section class="stats" id="stats"></section>
+ <div class="map-toolbar"><div class="map-title"><i></i><b id="map-caption">EMERGENCE</b></div><div class="map-controls"><input type="search" id="search" aria-label="Search"><select id="group"><option value="time" data-i18n="time"></option><option value="folder" data-i18n="folder"></option></select><button id="play" data-i18n="play"></button><button id="upload" data-i18n="upload"></button><input type="file" accept="image/png,image/jpeg,image/gif,image/webp" id="image-file" hidden></div></div>
+ <div class="work-area"><section class="map-shell"><div id="map" role="region" aria-label="Notes map"></div><div class="map-footer"><span id="map-hint" data-i18n="hint"></span><span id="timeline"></span></div></section><aside class="inspector" id="inspector"><div class="space-label" data-i18n="inspector"></div><div id="note-details"></div></aside></div>
+ <section class="insights"><div><span class="eyebrow" data-i18n="next"></span><p id="insight"></p></div><span class="policy" data-i18n="policy"></span></section>
+ <p id="message" role="status" aria-live="polite"></p>
+ <footer><span data-i18n="footer"></span><span>API · CLI · Markdown</span></footer>
+</main>
+<dialog id="create-dialog"><form id="create-form"><h2 data-i18n="newNote"></h2><label data-i18n="notePath" for="note-path"></label><input id="note-path" required value="Inbox/"><label data-i18n="content" for="note-content"></label><textarea id="note-content" rows="12" required></textarea><div class="dialog-actions"><button type="button" id="cancel-create" data-i18n="cancel"></button><button type="submit" class="primary" data-i18n="create"></button></div><p id="create-error" role="alert"></p></form></dialog>
+<script src="/app.js"></script></body></html>
