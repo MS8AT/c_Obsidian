@@ -6,7 +6,7 @@
 }
 
 # For an existing HTTPS gateway. Keep this port private on the container bridge.
-http://:8080 {
+http://:{$OBSIDIAN_SHARED_PORT:8080} {
     @wrong_host not host {$OBSIDIAN_DOMAIN:obsidian.ms8at.by}
     respond @wrong_host 403
     encode gzip
