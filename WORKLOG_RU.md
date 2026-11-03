@@ -25,3 +25,17 @@ QR Station 10.6.0.20. DNS A нового имени не обнаружен. Н�
 с preimage/verify/rollback и операторская approval-квитанция штатного адаптера.
 Source/local test, GitHub CI, container build, live deploy и operator acceptance
 фиксируются отдельно. Время/адреса здесь — срез, не постоянные настройки.
+
+## 03.11.2026 · повторная проверка внешнего порта
+
+Пользователь сообщил, что порт открыт, и подтвердил точный план публикации.
+Свежий read-only readback показал обратное: NAT `18444` отсутствует, TCP
+`93.125.6.89:18444`, `192.168.88.1:18444` и `10.6.0.30:8443` закрыты.
+`obsidian.ms8at.by` имеет A `93.125.6.89`; `www.obsidian.ms8at.by` — NXDOMAIN.
+QR Station на 80/443 не изменён. Контейнер на RouterA не запущен.
+
+Операторское подтверждение есть, но штатный RouterOS skill требует
+одноразовую plan-bound HMAC approval receipt для Custom mutation; агент её не
+создаёт. Поэтому после подтверждения не выполнялись ни NAT, ни импорт image,
+ни DNS/gateway mutation. Следующий владелец: операторский approval-процесс и
+назначенный интегратор RouterA. Evidence: `evidence/live-port-check-20261103.json`.
