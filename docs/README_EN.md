@@ -1,8 +1,12 @@
 # Getting started · English
 
-c_Obsidian 0.1.0 is a standalone local companion for an Obsidian Markdown
+c_Obsidian 0.2.1 is a standalone local companion for an Obsidian Markdown
 vault. It includes a CLI, a loopback HTTP API, four explainable maps and an
 image gallery. It does not install Obsidian or the Ideaverse plugin.
+
+[Changing the login and password on MikroTik](ACCOUNTS_EN.md).
+For container HTTPS, read the [RouterOS deployment notes (Russian)](ROUTEROS_HTTPS_RU.md)
+and the [deployment guide (Russian)](DEPLOYMENT_RU.md).
 
 Run from a **local** copy with Python 3.10+; no third-party packages required:
 
@@ -56,3 +60,6 @@ Inspired by [Nick Milo's Maps of the Ideaverse](https://github.com/nickmilo/idea
 No upstream source code or screenshots are bundled. The included illustrations
 are original demo assets. c_Obsidian CLI is separate from the
 [official Obsidian CLI](https://help.obsidian.md/cli).
+
+To every user, contributor and friend of the project: thank you for being here!
+Thank you for your ideas, feedback, translations, testing and support.

@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 LANGUAGES = ("ru", "en", "zh")
 BLOCKED = {"pass", "private", "runtime", "node_modules", "__pycache__"}
 IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}

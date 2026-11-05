@@ -1,9 +1,15 @@
 #!/bin/sh
 set -eu
+if [ "${OBSIDIAN_ROUTEROS_GATEWAY:-0}" = "1" ] && [ "${OBSIDIAN_SHARED_GATEWAY:-0}" = "1" ]; then
+    echo 'Choose one gateway mode.' >&2
+    exit 78
+fi
 gunicorn 'production:create_app()' --bind 127.0.0.1:8765 --workers 1 --threads 4 --timeout 60 --limit-request-line 4096 --limit-request-fields 40 --limit-request-field_size 8190 --access-logfile /dev/null --error-logfile - &
 app_pid=$!
 proxy_config=/etc/caddy/Caddyfile
-if [ "${OBSIDIAN_SHARED_GATEWAY:-0}" = "1" ]; then
+if [ "${OBSIDIAN_ROUTEROS_GATEWAY:-0}" = "1" ]; then
+    proxy_config=/etc/caddy/Caddyfile.routeros
+elif [ "${OBSIDIAN_SHARED_GATEWAY:-0}" = "1" ]; then
     proxy_config=/etc/caddy/Caddyfile.shared
 fi
 caddy run --config "$proxy_config" --adapter caddyfile &

@@ -1,6 +1,6 @@
 # c_Obsidian · Атлас идей / Idea Atlas / 思想地图
 
-Версия 0.2.0. Локальный спутник Obsidian: API, CLI, интерфейс RU/EN/简体中文,
+Версия 0.2.1. Локальный спутник Obsidian: API, CLI, интерфейс RU/EN/简体中文,
 карты Markdown-связей и изображения. [Русский](docs/README_RU.md) ·
 [English](docs/README_EN.md) · [简体中文](docs/README_ZH.md).
 
@@ -11,6 +11,10 @@
 ## Контейнер и внешний доступ
 
 Для RouterA и внешнего HTTPS добавлены постоянный вход, отзываемые сессии, Gunicorn и Caddy. [План и чеклист](docs/PLAN_CHECKLIST_RU.md) · [Развёртывание](docs/DEPLOYMENT_RU.md).
+
+Смена логина и пароля на MikroTik: [Русский](docs/ACCOUNTS_RU.md) ·
+[English](docs/ACCOUNTS_EN.md) · [简体中文](docs/ACCOUNTS_ZH.md).
+Исправления TLS, порта 18444 и проверок входа: [RouterOS HTTPS](docs/ROUTEROS_HTTPS_RU.md).
 
 ## Быстрый запуск
 
@@ -96,3 +100,14 @@ Node нужен только для необязательной проверк�
 к **c_Obsidian**, работают непосредственно с Markdown и не требуют запущенного
 Obsidian. [Vault API Obsidian](https://docs.obsidian.md/Plugins/Vault) относится
 к разработке плагинов внутри приложения; наш HTTP API описан отдельно.
+
+## Спасибо / Thank you / 谢谢你们
+
+Всем пользователям, участникам и друзьям проекта — спасибо, что вы есть!
+Спасибо за идеи, обратную связь, переводы, тестирование и поддержку.
+
+To every user, contributor and friend of the project: thank you for being here!
+Thank you for your ideas, feedback, translations, testing and support.
+
+感谢每一位用户、贡献者和项目的朋友，感谢有你们！
+谢谢大家提供想法、反馈、翻译、测试与支持。

@@ -26,23 +26,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build linux amd64 image
-        run: docker build --platform linux/amd64 -t c-obsidian:0.2.0 .
-      - name: Validate both proxy configurations
+        run: docker build --platform linux/amd64 -t c-obsidian:0.2.1 .
+      - name: Validate all proxy configurations
         run: |
-          docker run --rm --entrypoint caddy c-obsidian:0.2.0 validate --config /etc/caddy/Caddyfile --adapter caddyfile
-          docker run --rm --entrypoint caddy c-obsidian:0.2.0 validate --config /etc/caddy/Caddyfile.shared --adapter caddyfile
+          docker run --rm --entrypoint caddy c-obsidian:0.2.1 validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          docker run --rm --entrypoint caddy c-obsidian:0.2.1 validate --config /etc/caddy/Caddyfile.shared --adapter caddyfile
+          docker run --rm -e OBSIDIAN_DOMAIN=127.0.0.1:18444 -e OBSIDIAN_TLS_NAME=127.0.0.1 -e OBSIDIAN_PUBLIC_DOMAIN=obsidian.example.org:18444 --entrypoint caddy c-obsidian:0.2.1 validate --config /etc/caddy/Caddyfile.routeros --adapter caddyfile
       - name: Provision disposable CI account and start isolated container
         run: |
-          docker run --rm -v ci-obsidian-state:/state --entrypoint python c-obsidian:0.2.0 -c "from auth_store import create_user; create_user('/state','CiUser','ci-only-disposable-password')"
-          docker run -d --name obsidian-ci -e OBSIDIAN_SHARED_GATEWAY=1 -v ci-obsidian-state:/state -p 127.0.0.1:18766:8080 c-obsidian:0.2.0
+          docker run --rm -v ci-obsidian-state:/state --entrypoint python c-obsidian:0.2.1 -c "from auth_store import create_user; create_user('/state','CiUser','ci-only-disposable-password')"
+          docker run -d --name obsidian-ci -e OBSIDIAN_SHARED_GATEWAY=1 -v ci-obsidian-state:/state -p 127.0.0.1:18766:8080 c-obsidian:0.2.1
           for attempt in $(seq 1 30); do if curl --fail --silent -H 'Host: obsidian.ms8at.by' http://127.0.0.1:18766/api/health >/dev/null; then break; fi; sleep 1; done
       - name: Exercise real HTTP endpoints through Caddy and Gunicorn
         run: python -B tools/smoke_http.py --base-url http://127.0.0.1:18766
       - name: Export RouterOS image and checksum
         run: |
           mkdir -p deliverables
-          docker save c-obsidian:0.2.0 | gzip > deliverables/c-obsidian-0.2.0-linux-amd64.tar.gz
-          sha256sum deliverables/c-obsidian-0.2.0-linux-amd64.tar.gz > deliverables/SHA256SUMS
+          docker save c-obsidian:0.2.1 | gzip > deliverables/c-obsidian-0.2.1-linux-amd64.tar.gz
+          sha256sum deliverables/c-obsidian-0.2.1-linux-amd64.tar.gz > deliverables/SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: routeros-container-amd64

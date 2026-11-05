@@ -1,0 +1,36 @@
+{
+    admin off
+    auto_https disable_redirects
+    default_sni {$OBSIDIAN_TLS_NAME}
+    skip_install_trust
+    log {
+        level ERROR
+    }
+    servers {
+        protocols h1 h2
+    }
+}
+
+# Canonical application Host/Origin, including its explicit HTTPS port.
+https://{$OBSIDIAN_DOMAIN} {
+    tls internal
+    encode gzip
+    request_body {
+        max_size 24MB
+    }
+    reverse_proxy 127.0.0.1:8765
+}
+
+# Separate public DNS name; preserve the application's Host and Origin checks.
+https://{$OBSIDIAN_PUBLIC_DOMAIN} {
+    tls internal
+    encode gzip
+    request_body {
+        max_size 24MB
+    }
+    @public_origin header Origin https://{$OBSIDIAN_PUBLIC_DOMAIN}
+    request_header @public_origin Origin https://{$OBSIDIAN_DOMAIN}
+    reverse_proxy 127.0.0.1:8765 {
+        header_up Host {$OBSIDIAN_DOMAIN}
+    }
+}

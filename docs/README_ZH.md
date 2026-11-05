@@ -1,8 +1,11 @@
 # 快速开始 · 简体中文
 
-c_Obsidian 0.1.0 是独立的本地 Obsidian Markdown 知识库辅助工具，提供 CLI、
+c_Obsidian 0.2.1 是独立的本地 Obsidian Markdown 知识库辅助工具，提供 CLI、
 本机 HTTP API、四种可解释的地图和图片库。它不会安装或修改 Obsidian 或
 Maps of the Ideaverse 插件。
+
+[在 MikroTik 上更改用户名和密码](ACCOUNTS_ZH.md)。容器 HTTPS 配置请参阅
+[RouterOS 部署说明（俄文）](ROUTEROS_HTTPS_RU.md)和[部署指南（俄文）](DEPLOYMENT_RU.md)。
 
 使用 Python 3.10 或更高版本，在**本地**模块文件夹中运行，无需第三方依赖：
 
@@ -52,3 +55,6 @@ API 不支持替换或删除已有文件。
 地图灵感来自 [Nick Milo 的 Maps of the Ideaverse](https://github.com/nickmilo/ideaverse-maps)。
 未复制上游代码或截图，演示插图为原创素材。此工具的 CLI 与
 [Obsidian 官方 CLI](https://help.obsidian.md/cli) 相互独立。
+
+感谢每一位用户、贡献者和项目的朋友，感谢有你们！
+谢谢大家提供想法、反馈、翻译、测试与支持。

@@ -1,5 +1,24 @@
 # c_Obsidian · журнал
 
+## 06.11.2026 · версия 0.2.1: RouterOS HTTPS и управление аккаунтами
+
+Добавлены password/rename операции auth_store со скрытым вводом RU/EN/中文,
+атомарной заменой выбранной учётной записи, сохранением остальных пользователей
+и отзывом прежних сессий. Legacy create остаётся эксклюзивным provisioning.
+Добавлены отдельные инструкции смены web-аккаунта и пользователя RouterOS на
+трёх языках и благодарность пользователям, участникам и друзьям проекта.
+
+Включён переносимый Caddyfile.routeros с canonical LAN и public DNS site,
+точным Origin mapping и локальным CA; CI проверяет три варианта конфигурации.
+Датированная проверка работающей 0.2.0 и её ограничения описаны в
+docs/ROUTEROS_HTTPS_RU.md. Новые исходники/образ 0.2.1 этим не развёрнуты.
+Credentials, private keys, runtime logs, accounts, session DB и pass не копировались.
+
+Локально API/CLI и account-update regression suite PASS, JavaScript и translation
+coverage PASS. Сканер публикации выполнен эквивалентной read-only проверкой Python:
+PowerShell execution policy не менялась. Docker image/template validation и GitHub
+CI NOT_RUN: локальный Docker daemon недоступен; публикация требует GitHub auth.
+
 ## 03.11.2026 · версия 0.2.0, проверки и подготовка RouterA
 
 Поручение: проверить весь API/CLI, сделать план и чеклист, опубликовать на

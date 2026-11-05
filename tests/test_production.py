@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from auth_store import create_user, hash_password, verify_password
+from auth_store import create_user, hash_password, verify_password, update_user
 from production import Application
 
 PNG=base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a3ioAAAAASUVORK5CYII=')
@@ -124,6 +124,18 @@ class ProductionTests(unittest.TestCase):
         self.assertFalse(verify_password('different-test-password',encoded))
         self.assertNotEqual(encoded,hash_password('example-test-password'))
         with self.assertRaises(FileExistsError):create_user(state,'OtherUser','example-test-password')
+
+    def test_password_update_and_rename_back_never_restore_old_session(self):
+        self.login()
+        saved_cookie = self.cookie
+        update_user(self.state, 'TestUser', 'changed-test-password')
+        self.assertEqual(self.request('/api/session')['status'], 401)
+        update_user(self.state, 'TestUser', 'renamed-test-password', 'RenamedUser')
+        update_user(self.state, 'RenamedUser', 'correct-test-password', 'TestUser')
+        self.cookie = saved_cookie
+        self.assertEqual(self.request('/api/session')['status'], 401)
+        self.login()
+        self.assertEqual(self.request('/api/session')['status'], 200)
 
 
 if __name__=='__main__':unittest.main(verbosity=2)

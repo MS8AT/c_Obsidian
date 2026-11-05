@@ -9,9 +9,10 @@ COPY web ./web
 COPY demo-vault ./demo-vault
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY deploy/Caddyfile.shared /etc/caddy/Caddyfile.shared
+COPY deploy/Caddyfile.routeros /etc/caddy/Caddyfile.routeros
 COPY deploy/entrypoint.sh /entrypoint.sh
 COPY deploy/run-services.sh /app/run-services.sh
 RUN chmod 755 /entrypoint.sh /app/run-services.sh && mkdir -p /state /vault /data/caddy /config/caddy && chown -R app:app /state /vault /data /config
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 OBSIDIAN_VAULT=/vault OBSIDIAN_STATE=/state OBSIDIAN_DOMAIN=obsidian.ms8at.by OBSIDIAN_SECURE=1 XDG_DATA_HOME=/data XDG_CONFIG_HOME=/config
-EXPOSE 8080 8443
+EXPOSE 8080 8443 18444
 ENTRYPOINT ["/entrypoint.sh"]
