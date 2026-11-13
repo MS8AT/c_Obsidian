@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import os
 import posixpath
 import re
@@ -10,7 +11,8 @@ from datetime import datetime
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
-VERSION = "0.2.1"
+VERSION = "0.3.2"
+BUILD_VERSION = os.environ.get("OBSIDIAN_BUILD_VERSION") or "0.3.2-prism-api"
 LANGUAGES = ("ru", "en", "zh")
 BLOCKED = {"pass", "private", "runtime", "node_modules", "__pycache__"}
 IMAGE_TYPES = {".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp"}
@@ -19,6 +21,11 @@ MAX_IMAGE = 12 * 1024 * 1024
 
 
 class VaultError(ValueError):
+    pass
+
+
+class VaultConflict(VaultError):
+    """A valid write was based on stale state and must not overwrite it."""
     pass
 
 
@@ -99,7 +106,7 @@ class Vault:
             data = handle.read(MAX_NOTE + 1)
         if len(data) > MAX_NOTE:
             raise VaultError("note_too_large")
-        return {"path": relative, "content": data.decode('utf-8-sig')}
+        return {"path": relative, "content": data.decode('utf-8-sig'), "sha256": hashlib.sha256(data).hexdigest()}
 
     def create(self, relative: str, content: str) -> dict:
         path = safe_path(self.root, relative)
@@ -115,6 +122,34 @@ class Vault:
         except FileExistsError as exc:
             raise VaultError("already_exists") from exc
         return {"path": relative, "sha256": hashlib.sha256(raw).hexdigest(), "created": True}
+
+    def update(self, relative: str, content: str, expected_sha256: str | None = None) -> dict:
+        path = safe_path(self.root, relative)
+        if path.suffix.lower() != ".md" or not isinstance(content, str) or not path.is_file():
+            raise VaultError("note_not_found" if not path.is_file() else "invalid_note")
+        raw = content.encode("utf-8")
+        if len(raw) > MAX_NOTE:
+            raise VaultError("note_too_large")
+        current = path.read_bytes()
+        if expected_sha256 is not None:
+            if not isinstance(expected_sha256, str) or not re.fullmatch(r"[0-9a-fA-F]{64}", expected_sha256):
+                raise VaultError("invalid_sha256")
+            if not hmac.compare_digest(hashlib.sha256(current).hexdigest(), expected_sha256.lower()):
+                raise VaultConflict("revision_conflict")
+        temporary = path.with_name(path.name + ".c-obsidian-tmp")
+        try:
+            with temporary.open("xb") as handle:
+                handle.write(raw)
+            os.replace(temporary, path)
+        except FileExistsError as exc:
+            raise VaultError("file_error") from exc
+        finally:
+            try:
+                temporary.unlink()
+            except FileNotFoundError:
+                pass
+        self.cache.pop(relative, None)
+        return {"path": relative, "sha256": hashlib.sha256(raw).hexdigest(), "updated": True}
 
     def image(self, relative: str) -> tuple[bytes, str]:
         path = safe_path(self.root, relative)

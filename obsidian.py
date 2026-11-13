@@ -6,14 +6,19 @@ import base64
 import binascii
 import json
 import secrets
+import tempfile
 import sys
 import threading
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.cookies import SimpleCookie, CookieError
 from pathlib import Path
 from urllib.parse import parse_qs, urlsplit
 
-from obsidian_core import LANGUAGES, MAX_IMAGE, VERSION, Vault, VaultError
+from obsidian_core import BUILD_VERSION, LANGUAGES, MAX_IMAGE, VERSION, Vault, VaultConflict, VaultError
+from prism_core import PrismStore
+from prism import PRISM_CSP
+from api_extensions import ApiActions, api_error_status
 
 HERE = Path(__file__).resolve().parent
 MESSAGES = {
@@ -26,12 +31,22 @@ MESSAGES = {
 class Server(ThreadingHTTPServer):
     daemon_threads = True
 
-    def __init__(self, vault, port=0, writable=False, language="ru"):
+    def __init__(self, vault, port=0, writable=False, language="ru", state=None):
         self.vault, self.writable, self.language = vault, writable, language
+        self.prism = PrismStore(vault.root)
+        self._temporary_state = tempfile.TemporaryDirectory(prefix="c-obsidian-state-") if state is None else None
+        self.actions = ApiActions(vault, state if state is not None else self._temporary_state.name)
+        self.preview_token = secrets.token_urlsafe(32)
         self.token = secrets.token_urlsafe(32)
         self.lock = threading.RLock()
         super().__init__(("127.0.0.1", port), Handler)
         self.origin = f"http://127.0.0.1:{self.server_port}"
+
+
+    def server_close(self):
+        super().server_close()
+        if self._temporary_state is not None:
+            self._temporary_state.cleanup()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -40,7 +55,7 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, *_):
         pass  # Never put note contents, paths or authorization in access logs.
 
-    def reply(self, status, value, mime="application/json; charset=utf-8"):
+    def reply(self, status, value, mime="application/json; charset=utf-8", csp=None):
         raw = json.dumps(value, ensure_ascii=False).encode("utf-8") if not isinstance(value, bytes) else value
         self.send_response(status)
         self.send_header("Content-Type", mime)
@@ -48,7 +63,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("Referrer-Policy", "no-referrer")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
+        if status == 200 and urlsplit(self.path).path == '/api/prism/prototype':
+            self.send_header('Set-Cookie', 'c_obsidian_prism_preview=' + self.server.preview_token + '; Path=/prism; HttpOnly; SameSite=Strict')
+        self.send_header("Content-Security-Policy", csp or "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-ancestors 'none'")
         self.end_headers()
         self.wfile.write(raw)
 
@@ -62,46 +79,75 @@ class Handler(BaseHTTPRequestHandler):
             return False
         supplied = self.headers.get("Authorization", "")
         if api and not secrets.compare_digest(supplied.encode('utf-8'), ("Bearer " + self.server.token).encode('utf-8')):
-            self.reply(401, {"error": "unauthorized"})
-            return False
+            preview_cookie = False
+            if urlsplit(self.path).path == '/prism':
+                try:
+                    cookie = SimpleCookie()
+                    cookie.load(self.headers.get('Cookie', ''))
+                    value = cookie['c_obsidian_prism_preview'].value
+                    preview_cookie = secrets.compare_digest(value.encode('utf-8'), self.server.preview_token.encode('utf-8'))
+                except (CookieError, KeyError):
+                    pass
+            if not preview_cookie:
+                self.reply(401, {"error": "unauthorized"})
+                return False
         return True
 
     def do_GET(self):
         parsed = urlsplit(self.path)
         path, query = parsed.path, parse_qs(parsed.query)
-        if not self.guard(api=path.startswith("/api/") and path != "/api/health"):
+        if not self.guard(api=(path.startswith("/api/") and path != "/api/health") or path == "/prism"):
             return
         try:
             with self.server.lock:
-                if path == "/api/health":
-                    self.reply(200, {"ok": True, "version": VERSION, "auth": "token"})
+                action = self.server.actions.read(path, query)
+                if action is not None:
+                    value, mime = action
+                    self.reply(200, value, mime + "; charset=utf-8")
+                elif path == "/prism":
+                    self.reply(200, self.server.actions.prism.read()[0], "text/html; charset=utf-8", csp=PRISM_CSP)
+                elif path == "/api/health":
+                    self.reply(200, {"ok": True, "version": VERSION, "build_version": BUILD_VERSION, "auth": "token"})
                 elif path == "/api/status":
-                    self.reply(200, {"version": VERSION, "language": self.server.language, "languages": list(LANGUAGES), "writable": self.server.writable, "vault": self.server.vault.root.name})
+                    self.reply(200, {"version": VERSION, "build_version": BUILD_VERSION, "language": self.server.language, "languages": list(LANGUAGES), "writable": self.server.writable, "vault": self.server.vault.root.name})
                 elif path == "/api/openapi":
                     self.reply(200, json.loads((HERE / "openapi.json").read_text(encoding='utf-8')))
-                elif path == "/api/graph":
-                    self.reply(200, self.server.vault.graph())
-                elif path == "/api/note":
-                    self.reply(200, self.server.vault.read(query.get("path", [""])[0]))
                 elif path == "/api/image":
                     raw, mime = self.server.vault.image(query.get("path", [""])[0])
                     self.reply(200, raw, mime)
-                elif path in {"/", "/index.html", "/app.js", "/style.css"}:
+                elif path == "/api/prism/v1/cases":
+                    self.reply(200, {"cases": self.server.prism.list_cases()})
+                elif path.startswith("/api/prism/v1/cases/"):
+                    parts = path.strip("/").split("/")
+                    if len(parts) == 5:
+                        self.reply(200, self.server.prism.get(parts[4]))
+                    elif len(parts) == 6 and parts[5] == "history":
+                        self.reply(200, {"events": self.server.prism.history(parts[4])})
+                    elif len(parts) == 6 and parts[5] == "snapshot":
+                        self.reply(200, self.server.prism.read_snapshot(parts[4], int(query.get("revision", ["0"])[0]) or None))
+                    elif len(parts) == 6 and parts[5] == "export":
+                        self.reply(200, self.server.prism.export_case(parts[4]))
+                    elif len(parts) == 6 and parts[5] == "recovery":
+                        self.reply(200, {"pending": self.server.prism.recovery()})
+                    else:
+                        self.reply(404, {"error": "not_found"})
+                elif path in {"/", "/index.html", "/app.js", "/style.css", "/prism.js", "/prism.css"}:
                     name = "index.html" if path == "/" else path[1:]
-                    mime = {"index.html": "text/html", "app.js": "application/javascript", "style.css": "text/css"}[name]
+                    mime = {"index.html": "text/html", "app.js": "application/javascript", "style.css": "text/css", "prism.js": "application/javascript", "prism.css": "text/css"}[name]
                     self.reply(200, (HERE / "web" / name).read_bytes(), mime + "; charset=utf-8")
                 else:
                     self.reply(404, {"error": "not_found"})
+        except VaultConflict as exc:
+            self.reply(409, {"error": str(exc)})
         except VaultError as exc:
             self.reply(400, {"error": str(exc)})
+        except ValueError:
+            self.reply(400, {"error": "invalid_body"})
         except (OSError, UnicodeError):
             self.reply(500, {"error": "file_error"})
 
     def do_POST(self):
         if not self.guard():
-            return
-        if not self.server.writable:
-            self.reply(403, {"error": "read_only"})
             return
         try:
             if self.headers.get("Content-Type", "").split(";", 1)[0] != "application/json":
@@ -113,18 +159,57 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise VaultError("invalid_body")
             with self.server.lock:
-                if self.path == "/api/notes":
+                path = urlsplit(self.path).path
+                read_only_route = path.endswith(("/evaluate", "/compare")) or path == "/api/prism/v1/import/validate"
+                if not read_only_route and not self.server.writable:
+                    self.reply(403, {"error": "read_only"})
+                    return
+                extension = self.server.actions.write(self.command, path, data)
+                if extension is not None:
+                    self.reply(extension[0], extension[1])
+                    return
+                if path == "/api/notes" and self.command == "POST":
                     result = self.server.vault.create(data["path"], data["content"])
-                elif self.path == "/api/images":
+                elif path == "/api/notes/update" and self.command == "PUT":
+                    result = self.server.vault.update(data["path"], data["content"], data.get("expected_sha256"))
+                elif path == "/api/images" and self.command == "POST":
                     result = self.server.vault.add_image(data["path"], base64.b64decode(data["base64"], validate=True))
+                elif path == "/api/prism/v1/cases" and self.command == "POST":
+                    result = self.server.prism.create(data)
+                elif path == "/api/prism/v1/example" and self.command == "POST":
+                    result = self.server.prism.create_example()
+                elif path.startswith("/api/prism/v1/cases/"):
+                    parts = path.strip("/").split("/")
+                    if len(parts) == 6 and parts[5] == "evaluate" and self.command == "POST":
+                        result = self.server.prism.evaluate(parts[4], data.get("scenario") or data.get("scenario_id"))
+                    elif len(parts) == 6 and parts[5] == "snapshot" and self.command == "POST":
+                        result = self.server.prism.snapshot(parts[4], data.get("revision"), operation_id=data.get("operation_id"))
+                    elif len(parts) == 6 and parts[5] == "compare" and self.command == "POST":
+                        result = self.server.prism.compare(parts[4], data)
+                    elif len(parts) == 6 and parts[5] == "challenge" and self.command == "POST":
+                        result = self.server.prism.challenge(parts[4], data, data.get("expected_revision"))
+                    elif len(parts) == 5 and self.command == "PUT":
+                        result = self.server.prism.update(parts[4], data.get("model", data), data.get("expected_revision"), operation_id=data.get("operation_id"))
+                    else:
+                        self.reply(404, {"error": "not_found"})
+                        return
+                elif path == "/api/prism/v1/import/validate" and self.command == "POST":
+                    result = self.server.prism.validate_import(data.get("package", data))
+                elif path == "/api/prism/v1/import/commit" and self.command == "POST":
+                    result = self.server.prism.commit_import(data.get("package", {}), data.get("expected_package_sha256"), operation_id=data.get("operation_id"))
                 else:
                     self.reply(404, {"error": "not_found"})
                     return
-            self.reply(201, result)
+            self.reply(200 if read_only_route or path.endswith("/snapshot") else 201, result)
+        except VaultConflict as exc:
+            self.reply(409, {"error": str(exc)})
         except (KeyError, TypeError, ValueError, binascii.Error) as exc:
-            self.reply(400, {"error": str(exc) if isinstance(exc, VaultError) else "invalid_body"})
+            self.reply(api_error_status(exc), {"error": str(exc) if isinstance(exc, VaultError) else "invalid_body"})
         except OSError:
             self.reply(500, {"error": "file_error"})
+
+    def do_PUT(self):
+        self.do_POST()
 
 
 def parser(language="ru"):
@@ -146,6 +231,7 @@ def parser(language="ru"):
     photo.add_argument("--path", required=True, help="Destination inside vault")
     serve = commands.add_parser("serve", help="Open interface / Открыть интерфейс / 打开界面")
     serve.add_argument("--port", type=int, default=8765)
+    serve.add_argument("--state", type=Path, help="Persistent HTML prototype state; native cases stay in the vault")
     serve.add_argument("--write", action="store_true", help="Enable creation / Разрешить создание / 允许创建")
     serve.add_argument("--open", action="store_true", help="Open browser / Открыть браузер / 打开浏览器")
     return p
@@ -169,7 +255,7 @@ def main():
         else:
             vault = Vault(args.vault, args.created_property)
             if args.command == "serve":
-                with Server(vault, args.port, args.write, args.lang) as server:
+                with Server(vault, args.port, args.write, args.lang, state=args.state) as server:
                     # Token stays in the fragment, is removed by the UI, and is never logged.
                     url = server.origin + "/#" + server.token
                     if args.open:
@@ -195,7 +281,7 @@ def main():
                     raise VaultError("image_too_large")
                 result = vault.add_image(args.path, args.source.read_bytes())
             else:
-                result = {"version": VERSION, "vault": vault.root.name, "languages": list(LANGUAGES), "label": MESSAGES[args.lang]["vault"], "summary": vault.graph()["summary"]}
+                result = {"version": VERSION, "build_version": BUILD_VERSION, "vault": vault.root.name, "languages": list(LANGUAGES), "label": MESSAGES[args.lang]["vault"], "summary": vault.graph()["summary"]}
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0
     except (VaultError, OSError, UnicodeError) as exc:
