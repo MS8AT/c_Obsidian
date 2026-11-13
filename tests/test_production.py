@@ -99,10 +99,11 @@ class ProductionTests(unittest.TestCase):
     def test_host_origin_rate_limit_and_revoked_account(self):
         self.assertEqual(self.request('/api/login','POST',{'username':'TestUser','password':'correct-test-password'},headers={'HTTP_HOST':'evil.example'})['status'],403)
         self.assertEqual(self.request('/api/login','POST',{},headers={'HTTP_ORIGIN':'https://evil.example'})['status'],403)
-        for _ in range(10):
+        for _ in range(9):
             self.assertEqual(self.request('/api/login','POST',{'username':'missing','password':'test-password'})['status'],401)
+        self.assertEqual(self.request('/api/login','POST',{'username':'missing','password':'test-password'})['status'],429)
         self.assertEqual(self.request('/api/login','POST',{'username':'TestUser','password':'correct-test-password'})['status'],429)
-        self.app.attempts.clear()
+        self.app.attempts.clear(); self.app.blocked_until.clear()
         self.login()
         (self.state/'accounts.json').write_text('{}')
         self.assertEqual(self.request('/api/status')['status'],401)

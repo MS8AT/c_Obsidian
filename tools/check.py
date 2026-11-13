@@ -23,7 +23,7 @@ def main():
             print(result.stdout+result.stderr)
             raise SystemExit(result.returncode)
     run('API CLI security regression suite',[sys.executable,'-B','-m','unittest','discover','-s','tests','-v'])
-    for name in ['app.js','login.js']:
+    for name in ['app.js','login.js','prism.js']:
         run('JavaScript '+name,['node','--check','web/'+name])
     js=(ROOT/'web/app.js').read_text(encoding='utf-8').split('let lang=')[0]
     js+="\nconst keys=Object.keys(I18N.en);for(const l of ['ru','en','zh']){for(const k of keys){if(!I18N[l][k])throw Error(l+':'+k);}}console.log(JSON.stringify({languages:3,keys:keys.length,result:'PASS'}));"

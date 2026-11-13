@@ -9,8 +9,20 @@ Object.assign(I18N.en,{atlas:'Idea Atlas',emergenceName:'Emergence',starfieldNam
 Object.assign(I18N.zh,{atlas:'思想地图',emergenceName:'思想生长',starfieldName:'星空',gravityName:'引力',sensemakersName:'思维角色',photosName:'图片',localEdition:'本地版本',inspiration:'原版插件 ↗',mapLabel:'笔记地图',groupLabel:'排列笔记',linked_path:'不允许链接到知识库之外的文件。',outside_vault:'路径超出知识库范围。',note_not_found:'未找到笔记。',image_not_found:'未找到图片。',invalid_note:'请检查笔记路径和内容。',invalid_size:'请求大小无效。',json_required:'请求必须使用 JSON 格式。',invalid_host:'服务器地址无效。',invalid_origin:'已阻止来自其他网站的请求。',not_found:'未找到页面。',file_error:'无法读取或保存文件。'});
 const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
 Object.assign(I18N.ru,{logout:'Выйти',invalid_csrf:'Обновите страницу и повторите действие.'});Object.assign(I18N.en,{logout:'Sign out',invalid_csrf:'Refresh the page and try again.'});Object.assign(I18N.zh,{logout:'退出',invalid_csrf:'请刷新页面后重试。'});
+Object.assign(I18N.ru,{storage:'Хранилище',newNoteShort:'Заметка',storageTitle:'Подключённое хранилище',currentStorage:'Сейчас подключено',storageExplanation:'На RouterA приложение работает с серверным каталогом /vault. Выбор папки ниже копирует поддерживаемые файлы в это хранилище; постоянную SMB-связь настраивают отдельно на RouterA.',storageWarning:'Импорт добавляет Markdown и изображения. Существующие файлы не перезаписываются, скрытые каталоги и другие типы файлов пропускаются.',importFolder:'Импортировать папку',close:'Закрыть',importConfirm:'Скопировать {n} файлов в текущее хранилище?',importing:'Импорт: {done}/{total}',importDone:'Готово: добавлено {created}, уже было {skipped}, ошибок {failed}.',importEmpty:'В выбранной папке нет поддерживаемых файлов.',tooManyFiles:'За один раз можно импортировать не более 5000 файлов.'});
+Object.assign(I18N.en,{storage:'Storage',newNoteShort:'Note',storageTitle:'Connected storage',currentStorage:'Connected now',storageExplanation:'On RouterA the app uses the server-side /vault directory. Choosing a folder below copies supported files into that vault; a persistent SMB connection is configured separately on RouterA.',storageWarning:'Import adds Markdown files and images. Existing files are never overwritten; hidden folders and other file types are skipped.',importFolder:'Import folder',close:'Close',importConfirm:'Copy {n} files into the current vault?',importing:'Importing: {done}/{total}',importDone:'Done: {created} added, {skipped} already present, {failed} failed.',importEmpty:'The selected folder has no supported files.',tooManyFiles:'At most 5000 files can be imported at once.'});
+Object.assign(I18N.zh,{storage:'知识库',newNoteShort:'笔记',storageTitle:'已连接的知识库',currentStorage:'当前连接',storageExplanation:'在 RouterA 上，应用使用服务器端 /vault 目录。选择下面的文件夹会把支持的文件复制到该知识库；持续 SMB 连接需要在 RouterA 上单独配置。',storageWarning:'导入会添加 Markdown 和图片。不会覆盖现有文件；隐藏目录和其他文件类型会被跳过。',importFolder:'导入文件夹',close:'关闭',importConfirm:'将 {n} 个文件复制到当前知识库？',importing:'正在导入：{done}/{total}',importDone:'完成：新增 {created}，已存在 {skipped}，失败 {failed}。',importEmpty:'所选文件夹中没有支持的文件。',tooManyFiles:'一次最多导入 5000 个文件。'});
+Object.assign(I18N.ru,{exampleStorage:'Добавить пример',exampleDone:'Пример: добавлено {created}, уже было {skipped}, ошибок {failed}.',editNote:'Редактор заметки',editorHelp:'Редактируйте Markdown напрямую: связи [[...]], инструменты, параметры и слои остаются обычным проверяемым текстом. Сохранение идёт через API текущего хранилища.',save:'Сохранить',saved:'Заметка сохранена.',storageUnavailable:'Хранилище не отвечает. Откройте страницу через действующий ключ запуска и повторите.'});
+Object.assign(I18N.en,{exampleStorage:'Add example',exampleDone:'Example: {created} added, {skipped} already present, {failed} failed.',editNote:'Note editor',editorHelp:'Edit Markdown directly: links [[...]], tools, parameters and layers remain ordinary, reviewable text. Saving uses the current vault API.',save:'Save',saved:'Note saved.',storageUnavailable:'The storage API is unavailable. Open the page with a valid launch key and try again.'});
+Object.assign(I18N.zh,{exampleStorage:'添加示例',exampleDone:'示例：新增 {created}，已存在 {skipped}，失败 {failed}。',editNote:'笔记编辑器',editorHelp:'直接编辑 Markdown：链接 [[...]]、工具、参数和层级都保留为可检查的文本。保存通过当前知识库 API 完成。',save:'保存',saved:'笔记已保存。',storageUnavailable:'知识库 API 无响应。请使用有效的启动密钥重新打开页面后重试。'});
 let csrf='', sessionMode=false;
-let lang=localStorage.getItem('c-obsidian-language')||'ru', view='emergence', graph=null, status=null, selected=null, timer=null, frame=0;
+Object.assign(I18N.ru,{"prototypeName": "HTML-прототип", "prismDownload": "Скачать HTML", "prismDescription": "Авторский прототип Domiteli. Пример с заданными условиями; заметки хранилища пока не подключены.", "prismLoading": "Загрузка прототипа…"});
+Object.assign(I18N.en,{"prototypeName": "HTML prototype", "prismDownload": "Download HTML", "prismDescription": "Original Domiteli prototype. A fixed example; vault notes are not connected yet.", "prismLoading": "Loading prototype…"});
+Object.assign(I18N.zh,{"prototypeName": "HTML 原型", "prismDownload": "下载 HTML", "prismDescription": "Domiteli 原始原型。使用预设条件示例，尚未连接知识库笔记。", "prismLoading": "正在加载原型…"});
+Object.assign(I18N.ru,{"prismEdit": "Редактировать HTML", "prismUpload": "Загрузить HTML", "prismReset": "Вернуть авторский HTML", "prismSource": "Исходный HTML", "revision_conflict": "Файл уже изменён. Откройте актуальную версию перед сохранением.", "write_conflict": "Другой запрос сохраняет файл. Перечитайте состояние.", "expected_sha256_required": "Нужна версия исходного файла.", "html_too_large": "HTML превышает 2 МиБ.", "invalid_html": "Нужна полная HTML-страница."});
+Object.assign(I18N.en,{"prismEdit": "Edit HTML", "prismUpload": "Upload HTML", "prismReset": "Restore original HTML", "prismSource": "HTML source", "revision_conflict": "The file changed. Reload its current version before saving.", "write_conflict": "Another request is saving. Read the current state again.", "expected_sha256_required": "The source revision is required.", "html_too_large": "HTML exceeds 2 MiB.", "invalid_html": "A complete HTML page is required."});
+Object.assign(I18N.zh,{"prismEdit": "编辑 HTML", "prismUpload": "上传 HTML", "prismReset": "恢复原始 HTML", "prismSource": "HTML 源码", "revision_conflict": "文件已更改，请重新读取后保存。", "write_conflict": "另一请求正在保存，请重新读取状态。", "expected_sha256_required": "需要源文件版本。", "html_too_large": "HTML 超过 2 MiB。", "invalid_html": "需要完整的 HTML 页面。"});
+let lang=localStorage.getItem('c-obsidian-language')||'ru', view='prism', graph=null, status=null, selected=null, timer=null, frame=0;
 if(!I18N[lang])lang='ru';
 let token=location.hash.slice(1)||sessionStorage.getItem('c-obsidian-token')||'';
 if(location.hash){sessionStorage.setItem('c-obsidian-token',token);history.replaceState(null,'',location.pathname);}
@@ -22,7 +34,7 @@ function message(text){$('message').textContent=text;}
 function failure(error){return tr(error.message)===error.message?tr('failure')+error.message:tr(error.message);}
 async function api(path,options={}){const response=await fetch(path,{...options,headers:{...(token?{Authorization:'Bearer '+token}:{}),...(csrf?{'X-CSRF-Token':csrf}:{}),...(options.body?{'Content-Type':'application/json'}:{}),...options.headers}});if(!response.ok){if(response.status===401&&sessionMode){location.assign('/login');}const data=await response.json();throw new Error(data.error||response.status);}return response;}
 async function json(path,options){return(await api(path,options)).json();}
-function translate(){document.documentElement.lang=lang;document.title='c_Obsidian · '+tr('atlas');document.querySelectorAll('[data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===lang)));document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=tr(node.dataset.i18n));$('search').placeholder=tr('search');$('search').setAttribute('aria-label',tr('search'));$('group').setAttribute('aria-label',tr('groupLabel'));$('map').setAttribute('aria-label',tr('mapLabel'));$('view-title').textContent=tr(view+'Title');$('view-description').textContent=tr(view+'Desc');$('view-crumb').textContent=tr(view+'Name');$('map-caption').textContent=tr(view+'Name').toLocaleUpperCase();$('play').textContent=tr(timer?'stop':'play');if(status){$('new-note').title=$('upload').title=status.writable?'':tr('readOnly');}if(graph)render();}
+function translate(){document.documentElement.lang=lang;document.title='c_Obsidian · '+tr('atlas');document.querySelectorAll('[data-language]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.language===lang)));document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=tr(node.dataset.i18n));$('search').placeholder=tr('search');$('search').setAttribute('aria-label',tr('search'));$('group').setAttribute('aria-label',tr('groupLabel'));$('map').setAttribute('aria-label',tr('mapLabel'));$('view-title').textContent=tr(view+'Title');$('view-description').textContent=tr(view+'Desc');$('map-caption').textContent=tr(view+'Name').toLocaleUpperCase();$('play').textContent=tr(timer?'stop':'play');if(status){$('new-note').title=$('upload').title=status.writable?'':tr('readOnly');}if(graph)render();}
 function hash(text){let value=2166136261;for(const c of text)value=Math.imul(value^c.charCodeAt(0),16777619);return(value>>>0)/4294967295;}
 const colors=['','#7b91b5','#a394da','#8bcbb8','#d1b277','#dc9bc5'];
 function filtered(){const query=$('search').value.toLocaleLowerCase();let notes=graph.notes.filter(n=>(n.title+' '+n.id+' '+n.tags.join(' ')).toLocaleLowerCase().includes(query));if(timer){const dates=[...new Set(graph.notes.map(n=>n.created).filter(Boolean))].sort();const date=dates[Math.min(frame,dates.length-1)];notes=notes.filter(n=>n.created&&n.created<=date);$('timeline').textContent=date||tr('unknown');}else $('timeline').textContent='';return notes;}
@@ -49,23 +61,98 @@ for(const edge of graph.edges){if(!points.has(edge.source)||!points.has(edge.tar
 for(const note of notes){const[x,y]=points.get(note.id),group=sv('g',{class:'node',role:'button',tabindex:'0','aria-label':note.title,'data-note':note.id});const radius=4+note.level*.9;group.append(sv('circle',{cx:x,cy:y,r:radius+(selected===note.id?6:0),fill:colors[note.level],'fill-opacity':selected===note.id?.15:0}),sv('circle',{cx:x,cy:y,r:radius,fill:colors[note.level],stroke:selected===note.id?'#faf5ff':'#151823','stroke-width':selected===note.id?2:1.5}),sv('title',{},note.title+' · '+tr('level')+' '+note.level));if(note.level>=3||note.id===selected)group.append(sv('text',{x:x+radius+5,y:y+3,fill:'#c6c1dd','font-size':10},note.title.slice(0,26)));const choose=()=>{selected=note.id;render();};group.addEventListener('click',choose);group.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose();}});svg.append(group);}
 map.append(svg);inspect();}
 async function imageElement(path,css){const response=await api('/api/image?path='+encodeURIComponent(path));const url=URL.createObjectURL(await response.blob());objectUrls.add(url);return el('img',{src:url,class:css,alt:path,loading:'lazy'});}
+const IMAGE_EXTENSIONS=new Set(['.png','.jpg','.jpeg','.gif','.webp']);
+function importPath(file){const source=(file.webkitRelativePath||file.name).replaceAll('\\','/'),parts=source.split('/').filter(Boolean),relative=(parts.length>1?parts.slice(1):parts);if(!relative.length||relative.some(part=>part==='.'||part==='..'||part.startsWith('.')))return null;return relative.join('/');}
+function importKind(path){const lower=path.toLocaleLowerCase();if(lower.endsWith('.md'))return'note';for(const ext of IMAGE_EXTENSIONS)if(lower.endsWith(ext))return'image';return null;}
+async function fileBase64(file){const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let start=0;start<bytes.length;start+=8192)binary+=String.fromCharCode(...bytes.subarray(start,start+8192));return btoa(binary);}
+function openStorage(){if(status)$('storage-vault').textContent=status.vault;$('storage-progress').textContent='';$('storage-progress').classList.remove('error');$('storage-dialog').showModal();}
+async function ensureWritable(){if(!status){await refresh();}if(!status){$('storage-progress').textContent=tr('storageUnavailable');$('storage-progress').classList.add('error');return false;}if(!status.writable){$('storage-progress').textContent=tr('readOnly');$('storage-progress').classList.add('error');return false;}return true;}
+async function importFolder(files){const candidates=[...files].map(file=>({file,path:importPath(file)})).map(item=>({...item,kind:item.path&&importKind(item.path)})).filter(item=>item.path&&item.kind);if(!candidates.length){$('storage-progress').textContent=tr('importEmpty');return;}if(candidates.length>5000){$('storage-progress').textContent=tr('tooManyFiles');$('storage-progress').classList.add('error');return;}let created=0,skipped=0,failed=0;$('import-folder').disabled=true;$('example-storage').disabled=true;$('storage-progress').classList.remove('error');for(let index=0;index<candidates.length;index++){const{file,path,kind}=candidates[index];$('storage-progress').textContent=tr('importing',{done:index,total:candidates.length});try{if(kind==='note'){if(file.size>2*1024*1024)throw new Error('note_too_large');await json('/api/notes',{method:'POST',body:JSON.stringify({path,content:await file.text()})});}else{if(file.size>12*1024*1024)throw new Error('image_too_large');await json('/api/images',{method:'POST',body:JSON.stringify({path,base64:await fileBase64(file)})});}created++;}catch(error){if(error.message==='already_exists')skipped++;else failed++;}}await refresh();if(!$('storage-dialog').open)$('storage-dialog').showModal();$('storage-progress').textContent=tr('importDone',{created,skipped,failed});$('storage-progress').classList.toggle('error',failed>0);$('import-folder').disabled=!status?.writable;$('example-storage').disabled=!status?.writable;}
+const EXAMPLE_IMAGE='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+async function addExample(){if(!await ensureWritable())return;let created=0,skipped=0,failed=0;$('example-storage').disabled=true;$('import-folder').disabled=true;$('storage-progress').classList.remove('error');for(const item of[{path:'Examples/Storage-import-example.md',kind:'note',content:'---\ntype: example\n---\n# Импорт из папки\n\nЭтот пример создан кнопкой «Добавить пример». Свяжите его с [[Home]] или другой заметкой.\n\n- [ ] Добавить следующий слой\n'},{path:'assets/storage-import-example.png',kind:'image',base64:EXAMPLE_IMAGE}]){try{await json(item.kind==='note'?'/api/notes':'/api/images',{method:'POST',body:JSON.stringify(item.kind==='note'?{path:item.path,content:item.content}:{path:item.path,base64:item.base64})});created++;}catch(error){if(error.message==='already_exists')skipped++;else failed++;}}await refresh();$('storage-progress').textContent=tr('exampleDone',{created,skipped,failed});$('storage-progress').classList.toggle('error',failed>0);$('example-storage').disabled=!status?.writable;$('import-folder').disabled=!status?.writable;}
 async function renderPhotos(notes){const container=el('div',{class:'gallery'});$('map').append(container);let count=0;for(const note of notes)for(const path of note.images){count++;const card=el('button',{class:'photo-card'});card.append(el('span',{},note.title));card.addEventListener('click',()=>{selected=note.id;inspect();});container.append(card);imageElement(path,'').then(img=>{if(card.isConnected)card.prepend(img);else URL.revokeObjectURL(img.src);}).catch(()=>{});}if(!count)container.append(el('p',{class:'empty'},tr('noPhotos')));}
 function inspect(){const panel=$('note-details');panel.replaceChildren();const note=graph?.notes.find(n=>n.id===selected);if(!note){panel.append(el('h2',{},tr('selectNote')),el('p',{},tr('selectHint')));return;}
-panel.append(el('span',{class:'note-badge'},tr('level')+' '+note.level+' · '+tr(note.role)),el('h2',{},note.title),el('div',{class:'note-path'},note.id),el('p',{},tr(note.reason)),el('p',{},tr('clues',{h:note.headings,t:note.tasks})),el('p',{},tr('dateLabel')+': '+(note.created||tr('unknown'))));
+const edit=el('button',{class:'quiet'},tr('editNote'));edit.onclick=()=>openEditor(note);panel.append(el('span',{class:'note-badge'},tr('level')+' '+note.level+' · '+tr(note.role)),el('h2',{},note.title),el('div',{class:'note-path'},note.id),edit,el('p',{},tr(note.reason)),el('p',{},tr('clues',{h:note.headings,t:note.tasks})),el('p',{},tr('dateLabel')+': '+(note.created||tr('unknown'))));
 for(const key of['outgoing','incoming']){const section=el('div',{class:'note-rule'});section.append(el('b',{},tr(key)+' · '+note[key].length));for(const id of note[key]){const target=graph.notes.find(n=>n.id===id),button=el('button',{class:'note-link'},'↗ '+(target?.title||id));button.onclick=()=>{selected=id;render();};section.append(button);}panel.append(section);}
 if(note.unresolved.length)panel.append(el('p',{},tr('missing',{n:note.unresolved.length})));
 for(const path of note.images.slice(0,3)){imageElement(path,'detail-image').then(img=>{if(panel.isConnected&&selected===note.id)panel.append(img);else URL.revokeObjectURL(img.src);}).catch(()=>{});}
 const read=el('button',{class:'note-link'},tr('read')+' ↓');read.onclick=async()=>{try{const result=await json('/api/note?path='+encodeURIComponent(note.id));const pre=el('pre',{class:'note-preview'},result.content);read.replaceWith(pre);}catch(error){message(failure(error));}};panel.append(read);}
-async function refresh(){try{status=await json('/api/status');graph=await json('/api/graph');$('vault-name').textContent=status.vault;$('new-note').disabled=!status.writable;$('upload').disabled=!status.writable;$('new-note').title=$('upload').title=status.writable?'':tr('readOnly');message(graph.warnings.length?tr('partial'):'');translate();}catch(error){message(failure(error));}}
+async function openEditor(note){if(!status?.writable){message(tr('readOnly'));return;}try{const result=await json('/api/note?path='+encodeURIComponent(note.id));$('edit-path').value=note.id;$('edit-path').dataset.sha256=result.sha256;$('edit-content').value=result.content;$('edit-error').textContent='';$('edit-dialog').showModal();}catch(error){message(failure(error));}}
+async function refresh(){try{status=await json('/api/status');graph=await json('/api/graph');$('vault-name').textContent=status.vault;$('storage-vault').textContent=status.vault;$('build-version').textContent=status.build_version||status.version||'unknown';$('new-note').disabled=!status.writable;$('upload').disabled=!status.writable;$('import-folder').disabled=!status.writable;$('example-storage').disabled=!status.writable;$('new-note').title=$('upload').title=$('import-folder').title=$('example-storage').title=status.writable?'':tr('readOnly');message(graph.warnings.length?tr('partial'):'');translate();}catch(error){message(failure(error));}}
 function stop(){clearInterval(timer);timer=null;$('play').textContent=tr('play');$('map-hint').textContent=tr('hint');render();}
 document.querySelectorAll('[data-language]').forEach(button=>button.onclick=()=>{lang=button.dataset.language;localStorage.setItem('c-obsidian-language',lang);translate();});
-document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>{stop();view=button.dataset.view;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===button));$('play').hidden=view==='photos';$('group').hidden=view==='photos'||view==='sensemakers';translate();});
+document.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>{stop();view=button.dataset.view;document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===view));$('play').hidden=view==='photos';$('group').hidden=view==='photos'||view==='sensemakers';translate();});
 $('search').oninput=()=>render();$('group').onchange=()=>render();$('refresh').onclick=refresh;
+$('storage').onclick=openStorage;$('vault-name').onclick=openStorage;$('cancel-storage').onclick=()=>$('storage-dialog').close();$('example-storage').onclick=addExample;$('import-folder').onclick=async()=>{if(!await ensureWritable())return;$('vault-folder').click();};$('vault-folder').onchange=async()=>{try{await importFolder($('vault-folder').files);}catch(error){$('storage-progress').textContent=failure(error);$('storage-progress').classList.add('error');}finally{$('vault-folder').value='';$('import-folder').disabled=!status?.writable;$('example-storage').disabled=!status?.writable;}};
 $('play').onclick=()=>{if(!graph)return;if(timer){stop();return;}frame=0;const count=new Set(graph.notes.map(n=>n.created).filter(Boolean)).size;if(!count)return;timer=setInterval(()=>{frame++;if(frame>=count){stop();return;}render();},600);$('play').textContent=tr(timer?'stop':'play');$('map-hint').textContent=tr('timelineInfo');render();};
 $('new-note').onclick=()=>{if(!status?.writable){message(tr('readOnly'));return;}$('create-error').textContent='';$('create-dialog').showModal();};
 $('cancel-create').onclick=()=>$('create-dialog').close();
 $('create-form').onsubmit=async e=>{e.preventDefault();try{await json('/api/notes',{method:'POST',body:JSON.stringify({path:$('note-path').value,content:$('note-content').value})});$('create-dialog').close();await refresh();message(tr('created'));}catch(error){$('create-error').textContent=failure(error);}};
+$('cancel-edit').onclick=()=>$('edit-dialog').close();$('edit-form').onsubmit=async e=>{e.preventDefault();try{await json('/api/notes/update',{method:'PUT',body:JSON.stringify({path:$('edit-path').value,content:$('edit-content').value,expected_sha256:$('edit-path').dataset.sha256})});$('edit-dialog').close();await refresh();message(tr('saved'));}catch(error){$('edit-error').textContent=failure(error);}};
 $('upload').onclick=()=>$('image-file').click();
 $('image-file').onchange=async()=>{const file=$('image-file').files[0];if(!file)return;try{if(file.size>12*1024*1024)throw new Error('image_too_large');const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(let start=0;start<bytes.length;start+=8192)binary+=String.fromCharCode(...bytes.subarray(start,start+8192));const path='assets/'+file.name;const result=await json('/api/images',{method:'POST',body:JSON.stringify({path,base64:btoa(binary)})});message(tr('uploaded')+result.embed);}catch(error){message(failure(error));}finally{$('image-file').value='';}};
 $('logout').onclick=async()=>{try{await json('/api/logout',{method:'POST'});sessionStorage.removeItem('c-obsidian-token');location.assign('/login');}catch(error){message(failure(error));}};
-translate();(async()=>{try{const health=await(await fetch('/api/health')).json();sessionMode=health.auth==='session';if(sessionMode){token='';const session=await json('/api/session');csrf=session.csrf;$('logout').hidden=false;await refresh();}else if(token){await refresh();}else message(tr('auth'));}catch(error){message(failure(error));}})();
+function openStorageOnStart(){if(sessionStorage.getItem('c-obsidian-storage-started')==='1')return;sessionStorage.setItem('c-obsidian-storage-started','1');openStorage();}
+translate();(async()=>{try{const health=await(await fetch('/api/health')).json();sessionMode=health.auth==='session';if(sessionMode){token='';const session=await json('/api/session');csrf=session.csrf;$('logout').hidden=false;await refresh();openStorageOnStart();}else if(token){await refresh();openStorageOnStart();}else message(tr('auth'));}catch(error){message(failure(error));}})();
+
+let prismSource=null;
+$('open-prism').onclick=async()=>{
+  $('prism-message').textContent=tr('prismLoading');
+  $('prism-download').disabled=true;
+  $('prism-dialog').showModal();
+  try{
+    prismSource=await json('/api/prism/prototype');
+    $('prism-frame').src=prismSource.preview_url;
+    $('prism-download').disabled=false;
+    for(const id of ['prism-edit','prism-upload','prism-reset'])$(id).disabled=!status?.writable;
+    $('prism-message').textContent='';
+  }catch(error){$('prism-message').textContent=failure(error);}
+};
+$('prism-close').onclick=()=>$('prism-dialog').close();
+$('prism-dialog').addEventListener('close',()=>{
+  $('prism-frame').removeAttribute('src');
+  prismSource=null;
+});
+$('prism-download').onclick=()=>{
+  if(!prismSource)return;
+  const url=URL.createObjectURL(new Blob([prismSource.content],{type:'text/html;charset=utf-8'}));
+  const link=document.createElement('a');
+  link.href=url;link.download=prismSource.filename;
+  document.body.append(link);link.click();link.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
+
+async function savePrismSource(content){
+  if(!prismSource||!status?.writable)throw new Error('read_only');
+  prismSource=await json('/api/prism/prototype',{method:'PUT',body:JSON.stringify({content,expected_sha256:prismSource.sha256})});
+  $('prism-frame').src=prismSource.preview_url+'?revision='+prismSource.sha256;
+}
+$('prism-edit').onclick=()=>{
+  if(!prismSource||!status?.writable)return;
+  $('prism-editor-content').value=prismSource.content;
+  $('prism-editor-error').textContent='';
+  $('prism-editor-dialog').showModal();
+};
+$('prism-editor-cancel').onclick=()=>$('prism-editor-dialog').close();
+$('prism-editor-form').onsubmit=async event=>{
+  event.preventDefault();
+  try{await savePrismSource($('prism-editor-content').value);$('prism-editor-dialog').close();}
+  catch(error){$('prism-editor-error').textContent=failure(error);}
+};
+$('prism-upload').onclick=()=>$('prism-file').click();
+$('prism-file').onchange=async()=>{
+  const file=$('prism-file').files[0];if(!file)return;
+  try{
+    if(file.size>2*1024*1024)throw new Error('html_too_large');
+    await savePrismSource(await file.text());$('prism-message').textContent='';
+  }catch(error){$('prism-message').textContent=failure(error);}
+  finally{$('prism-file').value='';}
+};
+$('prism-reset').onclick=async()=>{
+  if(!prismSource||!status?.writable)return;
+  try{
+    prismSource=await json('/api/prism/reset',{method:'POST',body:JSON.stringify({expected_sha256:prismSource.sha256})});
+    $('prism-frame').src=prismSource.preview_url+'?revision='+prismSource.sha256;
+    $('prism-message').textContent='';
+  }catch(error){$('prism-message').textContent=failure(error);}
+};
