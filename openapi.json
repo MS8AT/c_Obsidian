@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "c_Obsidian local API",
-    "version": "0.2.1",
-    "description": "Local bearer API and production cookie-session API. Writes create files only."
+    "version": "0.3.2-prism-api",
+    "description": "Local bearer API and production cookie-session API. Create-only import, conflict-safe note updates and bounded Prism v1 models."
   },
   "servers": [
     {
@@ -29,6 +29,12 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "obsidian_session"
+      },
+      "prismPreview": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "c_obsidian_prism_preview",
+        "description": "Loopback-only HttpOnly /prism cookie issued after authenticated GET /api/prism/prototype. Gives access only to the HTML preview."
       }
     },
     "schemas": {
@@ -420,7 +426,44 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "view",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "group",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "until",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "language",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/api/note": {
@@ -721,6 +764,335 @@
             }
           }
         }
+      },
+      "get": {
+        "summary": "List or search current vault notes",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/notes/update": {
+      "put": {
+        "summary": "Update an existing Markdown note with optimistic SHA-256 locking",
+        "operationId": "update_note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "content",
+                  "expected_sha256"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "expected_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-fA-F]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Updated"
+          },
+          "409": {
+            "description": "Revision conflict"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases": {
+      "get": {
+        "summary": "List Prism cases",
+        "operationId": "list_prism_cases",
+        "responses": {
+          "200": {
+            "description": "Case summaries"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a Prism case",
+        "operationId": "create_prism_case",
+        "responses": {
+          "201": {
+            "description": "Case created"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read a Prism model",
+        "operationId": "get_prism_case",
+        "responses": {
+          "200": {
+            "description": "Current model"
+          }
+        }
+      },
+      "put": {
+        "summary": "Save a new Prism revision; expected_revision is required",
+        "operationId": "update_prism_case",
+        "responses": {
+          "201": {
+            "description": "Revision saved"
+          },
+          "409": {
+            "description": "Revision conflict"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/evaluate": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Evaluate the bounded rule AST, optionally with a scenario override",
+        "operationId": "evaluate_prism_case",
+        "responses": {
+          "200": {
+            "description": "Explainable evaluation; no commands or external calls"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/history": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read Prism revision events",
+        "operationId": "get_prism_history",
+        "responses": {
+          "200": {
+            "description": "Append-only events"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/snapshot": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read an immutable snapshot",
+        "operationId": "get_prism_snapshot",
+        "responses": {
+          "200": {
+            "description": "Snapshot model and hash"
+          }
+        },
+        "description": "Read a previously committed snapshot; never writes events or state, including in read-only mode."
+      },
+      "post": {
+        "summary": "Fix a snapshot without increasing semantic revision",
+        "operationId": "create_prism_snapshot",
+        "responses": {
+          "200": {
+            "description": "Snapshot fixed"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/compare": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Compare base and selected scenarios or perspectives",
+        "operationId": "compare_prism_case",
+        "responses": {
+          "200": {
+            "description": "Read-only differences"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/export": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Export a self-describing Prism package",
+        "operationId": "export_prism_case",
+        "responses": {
+          "200": {
+            "description": "Open JSON package"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/recovery": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "get": {
+        "summary": "Read pending transaction markers",
+        "operationId": "get_prism_recovery",
+        "responses": {
+          "200": {
+            "description": "Recovery status"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/cases/{case_id}/challenge": {
+      "parameters": [
+        {
+          "name": "case_id",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "post": {
+        "summary": "Record an explicit alternative model",
+        "operationId": "challenge_prism_model",
+        "responses": {
+          "201": {
+            "description": "Alternative recorded"
+          },
+          "409": {
+            "description": "Revision conflict"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/example": {
+      "post": {
+        "summary": "Create or return the built-in reversibility example",
+        "operationId": "create_prism_example",
+        "responses": {
+          "201": {
+            "description": "Example ready"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/import/validate": {
+      "post": {
+        "summary": "Validate an import package without writing",
+        "operationId": "validate_prism_import",
+        "responses": {
+          "200": {
+            "description": "Validated package hash"
+          }
+        }
+      }
+    },
+    "/api/prism/v1/import/commit": {
+      "post": {
+        "summary": "Commit exactly the previously validated package",
+        "operationId": "commit_prism_import",
+        "responses": {
+          "201": {
+            "description": "Imported case"
+          },
+          "409": {
+            "description": "Package or case conflict"
+          }
+        }
       }
     },
     "/api/images": {
@@ -873,7 +1245,7 @@
             "description": "Invalid credentials"
           },
           "429": {
-            "description": "Rate limit"
+            "description": "After 10 failed passwords from one remote, login is blocked for 30 minutes; Retry-After reports the remaining seconds."
           }
         }
       }
@@ -910,6 +1282,442 @@
           },
           "403": {
             "description": "Invalid CSRF"
+          }
+        }
+      }
+    },
+    "/api/prism/prototype": {
+      "get": {
+        "summary": "Read the bundled Domiteli Prism HTML and SHA-256; no vault integration",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Original prototype source",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "filename",
+                    "sha256",
+                    "bytes",
+                    "preview_url",
+                    "content",
+                    "kind",
+                    "vault_integration"
+                  ],
+                  "properties": {
+                    "filename": {
+                      "type": "string"
+                    },
+                    "sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "bytes": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "preview_url": {
+                      "const": "/prism"
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "Original UTF-8 HTML, including original line endings."
+                    },
+                    "kind": {
+                      "const": "standalone_prototype"
+                    },
+                    "vault_integration": {
+                      "const": false
+                    },
+                    "modified": {
+                      "type": "boolean"
+                    },
+                    "original_sha256": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{64}$"
+                    },
+                    "build_version": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        },
+        "parameters": [
+          {
+            "name": "original",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "0",
+                "1"
+              ]
+            },
+            "description": "1 reads bundled original; default reads working copy."
+          }
+        ]
+      },
+      "put": {
+        "summary": "Import or edit working HTML, preserving bundled original",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Required for production cookie mutations; local bearer mode does not use it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "content",
+                  "expected_sha256"
+                ],
+                "properties": {
+                  "content": {
+                    "type": "string",
+                    "maxLength": 2097152
+                  },
+                  "expected_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or protected path"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Read-only, wrong Host/Origin, or invalid CSRF"
+          },
+          "409": {
+            "description": "revision_conflict or write_conflict; reread before retry, no overwrite"
+          }
+        }
+      }
+    },
+    "/prism": {
+      "get": {
+        "summary": "Authenticated sandboxed preview: production session, or loopback bearer/scoped preview cookie",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          },
+          {
+            "prismPreview": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opaque-origin sandboxed preview. No same-origin access or network connections.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Production session required"
+          }
+        }
+      }
+    },
+    "/api/capabilities": {
+      "get": {
+        "summary": "Enumerate data operations, UI-only controls, placeholders and limits",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/views": {
+      "get": {
+        "summary": "Supported graph views and projection parameters",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/image/info": {
+      "get": {
+        "summary": "Read image MIME, size and SHA-256",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid query"
+          },
+          "401": {
+            "description": "Authentication required"
+          }
+        }
+      }
+    },
+    "/api/images/update": {
+      "put": {
+        "summary": "Replace an image after signature validation",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Required for production cookie mutations; local bearer mode does not use it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "path",
+                  "base64"
+                ],
+                "properties": {
+                  "path": {
+                    "type": "string"
+                  },
+                  "base64": {
+                    "type": "string"
+                  },
+                  "expected_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or protected path"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Read-only, wrong Host/Origin, or invalid CSRF"
+          },
+          "409": {
+            "description": "revision_conflict or write_conflict; reread before retry, no overwrite"
+          }
+        }
+      }
+    },
+    "/api/prism/reset": {
+      "post": {
+        "summary": "Restore working HTML to original after revision check",
+        "security": [
+          {
+            "sessionBearer": []
+          },
+          {
+            "webSession": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "description": "Required for production cookie mutations; local bearer mode does not use it.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "expected_sha256"
+                ],
+                "properties": {
+                  "expected_sha256": {
+                    "type": "string",
+                    "pattern": "^[0-9a-f]{64}$"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request or protected path"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Read-only, wrong Host/Origin, or invalid CSRF"
+          },
+          "409": {
+            "description": "revision_conflict or write_conflict; reread before retry, no overwrite"
           }
         }
       }

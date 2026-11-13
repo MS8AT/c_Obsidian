@@ -9,6 +9,7 @@ import threading
 import unittest
 from pathlib import Path
 from urllib.error import HTTPError
+from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -114,11 +115,11 @@ class WorkflowTests(unittest.TestCase):
         with Server(self.vault, writable=False) as server:
             thread=threading.Thread(target=server.serve_forever, daemon=True)
             thread.start()
-            def request(path, body=None, auth=True, **headers):
+            def request(path, body=None, auth=True, method=None, **headers):
                 if auth: headers['Authorization']='Bearer '+server.token
                 data=None if body is None else json.dumps(body).encode()
                 if data is not None: headers['Content-Type']='application/json'
-                req=Request(server.origin+path,data=data,headers=headers)
+                req=Request(server.origin+path,data=data,headers=headers,method=method)
                 try:
                     with urlopen(req,timeout=5) as response:
                         return response.status, response.read(), response.headers
@@ -139,6 +140,9 @@ class WorkflowTests(unittest.TestCase):
                 server.writable=True
                 self.assertEqual(request('/api/notes',{'path':'新笔记.md','content':'# Привет 中文'})[0],201)
                 self.assertEqual(request('/api/notes',{'path':'新笔记.md','content':'overwrite'})[0],400)
+                self.assertEqual(request('/api/notes/update',{'path':'新笔记.md','content':'# Обновлено\n\n[[Home]]'},method='PUT')[0],201)
+                updated = json.loads(request('/api/note?path='+quote('新笔记.md'))[1])
+                self.assertIn('Обновлено', updated['content'])
                 self.assertEqual(request('/api/notes',{'path':'../escape.md','content':'escape'})[0],400)
                 self.assertEqual(request('/api/images',{'path':'assets/photo.png','base64':base64.b64encode(PNG).decode()})[0],201)
                 self.assertEqual(request('/api/image?path=assets/photo.png')[1],PNG)
