@@ -1,0 +1,20 @@
+body.prism-mode .stats,body.prism-mode .map-toolbar,body.prism-mode .inspector,body.prism-mode .insights{display:none}
+body.prism-mode .work-area{display:block}
+body.prism-mode .map-shell{min-height:640px}
+body.prism-mode #map{height:auto;min-height:600px;overflow:visible;background:linear-gradient(145deg,#121621,#171529)}
+body.prism-mode .map-footer{display:none}
+.prism-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:15px;border-bottom:1px solid var(--line);background:#10141f;position:sticky;top:84px;z-index:5}
+.prism-toolbar>select{min-width:240px;max-width:360px}.prism-perspectives{display:flex;gap:4px;margin-right:auto}.prism-perspectives button{padding:6px 8px;font-size:9px}.prism-perspectives button.active{background:#c4b3ff;color:#201735;border-color:#c4b3ff}
+.prism-question{padding:22px 24px;border-bottom:1px solid var(--line)}.prism-question h2{font-size:23px;font-weight:500;margin:8px 0}.prism-question p{font-size:11px}
+.prism-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:14px}.prism-bottom{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px 18px}
+.prism-panel{background:#121722;border:1px solid #2a3040;border-radius:10px;padding:16px;min-width:0}.prism-panel>h2{font-size:12px;text-transform:uppercase;letter-spacing:1.4px;color:#b6a0ff;margin:0 0 13px}.prism-list{display:grid;gap:9px}
+.prism-card{position:relative;border:1px solid #303649;border-radius:8px;background:#181d2b;padding:12px}.prism-card h3,.prism-result h3{font-size:13px;margin:5px 0}.prism-card p,.prism-result p,.prism-card details{font-size:10px;margin:6px 0;color:var(--muted)}.prism-card summary{cursor:pointer;color:#b5bdd0}.prism-kind{font-size:8px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mint)}.prism-meta{font-size:9px;color:#7f899e;margin-top:8px}.prism-value{margin-top:10px;width:100%;font-size:10px;background:#111622}
+.prism-scenario{display:block;width:100%;text-align:left;color:var(--text);margin:7px 0}
+.prism-result{border-left:3px solid #778198;padding:10px 12px;margin:8px 0;background:#171c29}.prism-result.satisfied{border-left-color:var(--mint)}.prism-result.not_satisfied{border-left-color:var(--pink)}.prism-result.conflicted{border-left-color:var(--gold)}.result-status{font-size:9px;color:#aeb6ca;text-transform:uppercase}.prism-notice{border-top:1px solid var(--line);padding-top:12px!important;color:var(--gold)!important}.prism-rule{font:10px/1.6 Consolas,monospace;padding:9px;background:#0e121b;border-radius:6px;margin:7px 0;color:#b9c1d3}.prism-rule summary{cursor:pointer;color:#d0c6eb}.prism-ast{display:grid;gap:5px;margin:10px 0 4px;padding-left:12px;border-left:1px solid #45405a}.ast-op{color:var(--mint);text-transform:uppercase}.ast-fact{color:#d8c7a7}.prism-dsl{white-space:pre-wrap;overflow:auto;max-height:220px;margin:10px 0 0;color:#9ba8bf;background:#0a0e16;padding:10px;border-radius:6px}.prism-empty{font-size:11px;color:var(--muted)}.prism-welcome{display:grid;place-items:center;text-align:center;min-height:560px;padding:30px}.prism-welcome p{max-width:520px}
+@media(max-width:1100px){.prism-toolbar{top:132px}.prism-grid{grid-template-columns:1fr 1fr}.prism-results{grid-column:1/-1}}
+@media(max-width:720px){.prism-toolbar{top:66px}.prism-toolbar>select{min-width:100%;max-width:100%}.prism-perspectives{width:100%;overflow:auto}.prism-grid,.prism-bottom{grid-template-columns:1fr}.prism-results{grid-column:auto}}
+
+#prism-project-dialog{width:min(700px,94vw)}#prism-project-dialog form{display:grid;gap:10px}#prism-project-dialog input,#prism-project-dialog textarea{width:100%}.prism-history-dialog{width:min(900px,94vw)}.prism-history-dialog pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:65vh;overflow:auto}.prism-toolbar{flex-wrap:wrap}
+/* The map shell clips overflow; a sticky offset hid the research question. */
+body.prism-mode #map>.prism-toolbar{position:static;top:auto}
+.prism-dialog>.prism-toolbar{position:static;top:auto;background:transparent;border:0;padding:0}

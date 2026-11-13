@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Призма различений — прототип</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#161a21; --panel2:#1c212b; --line:#2a3140;
+  --text:#e8ecf3; --muted:#9aa4b5; --accent:#7aa2f7; --ok:#7ee787;
+  --bad:#f85149; --warn:#e3b341; --unknown:#8b949e; --chip:#232a37;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.45 "Segoe UI",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;
+  border-bottom:1px solid var(--line);background:var(--panel)}
+header h1{font-size:16px;margin:0;font-weight:600}
+.views{display:flex;gap:4px;margin-left:auto}
+.views button{background:var(--chip);border:1px solid var(--line);color:var(--muted);
+  border-radius:6px;padding:4px 10px;font-size:12px;cursor:default}
+.views button.active{color:var(--text);border-color:var(--accent)}
+.views .hint{font-size:11px;color:var(--muted);align-self:center}
+main{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:12px;padding:12px 16px}
+.col{background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  padding:12px;min-height:420px}
+.col h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;
+  color:var(--muted);margin:0 0 10px}
+.node{background:var(--panel2);border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;margin-bottom:8px;cursor:pointer;transition:border-color .15s}
+.node:hover{border-color:var(--accent)}
+.node .t{font-weight:600;font-size:13px}
+.node .d{color:var(--muted);font-size:12px;margin-top:2px}
+.node .badge{display:inline-block;font-size:10px;padding:1px 6px;border-radius:8px;
+  margin-left:6px;vertical-align:middle}
+.st-unknown{background:#2d333d;color:var(--unknown)}
+.st-established{background:#1d3320;color:var(--ok)}
+.st-asserted{background:#33301d;color:var(--warn)}
+.st-refuted{background:#331d1d;color:var(--bad)}
+.st-disputed{background:#332a1d;color:var(--warn)}
+.st-not_applicable{background:#2d333d;color:var(--muted)}
+.res-satisfied{color:var(--ok)}
+.res-not_satisfied{color:var(--bad)}
+.res-unknown{color:var(--unknown)}
+.res-not_applicable{color:var(--muted)}
+.res-conflicted{color:var(--warn)}
+.chain{border-left:2px solid var(--line);padding-left:12px;margin:8px 0 8px 6px}
+.chain .step{margin-bottom:6px}
+.chain .arrow{color:var(--muted);font-size:12px;margin:2px 0 2px 4px}
+.tree{margin:6px 0 0 0;padding:0 0 0 14px;list-style:none;font-size:12px;color:var(--muted)}
+.tree li{margin-bottom:3px}
+.tree .ok{color:var(--ok)} .tree .no{color:var(--bad)} .tree .un{color:var(--unknown)}
+#resultCard{font-size:15px}
+#resultCard .verdict{font-weight:700;font-size:16px;margin-bottom:6px}
+#resultCard .reason{color:var(--muted);font-size:13px}
+#actions{display:flex;gap:10px;padding:12px 16px;border-top:1px solid var(--line);
+  background:var(--panel);align-items:center;flex-wrap:wrap}
+#actions button{background:var(--accent);border:none;color:#0f1115;font-weight:600;
+  border-radius:8px;padding:10px 18px;font-size:14px;cursor:pointer}
+#actions button.ghost{background:var(--chip);color:var(--muted);border:1px solid var(--line);
+  font-weight:400}
+#explain{margin:0 16px 16px;padding:12px 16px;background:var(--panel);
+  border:1px solid var(--line);border-radius:10px;font-size:13px;display:none}
+#explain h3{margin:0 0 8px;font-size:13px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.05em}
+#explain ol{margin:0;padding-left:18px}
+#explain li{margin-bottom:5px}
+#explain .changed{color:var(--warn)}
+#explain .lost{color:var(--bad)}
+#explain .new{color:var(--ok)}
+#explain .alt{color:var(--accent)}
+#card{position:fixed;right:16px;top:60px;width:340px;background:var(--panel2);
+  border:1px solid var(--accent);border-radius:10px;padding:14px;z-index:10;
+  display:none;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#card h3{margin:0 0 8px;font-size:14px}
+#card .row{font-size:12px;margin-bottom:6px}
+#card .row b{color:var(--muted);font-weight:600;display:block;font-size:11px;
+  text-transform:uppercase;letter-spacing:.04em}
+#card .close{position:absolute;top:8px;right:10px;cursor:pointer;color:var(--muted)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Призма различений · прототип</h1>
+  <div class="views">
+    <button class="active">Процесс</button>
+    <button>Пользователь</button>
+    <button>Архитектура</button>
+    <button>ИИ</button>
+    <span class="hint">взгляды — заготовка, расчёт только в «Процесс»</span>
+  </div>
+</header>
+<main>
+  <section class="col" id="colSubject">
+    <h2>Предмет и условия</h2>
+    <div class="node" data-node="subject">
+      <span class="t">Предмет: граф связей vault</span>
+      <span class="badge st-established">established</span>
+      <div class="d">Домен: <b>vault-maintenance</b>. Массовое изменение ссылок между заметками.</div>
+    </div>
+    <div class="node" data-node="question">
+      <span class="t">Вопрос</span>
+      <div class="d">Можно ли восстановить прежнее состояние связей после массового изменения?</div>
+    </div>
+    <div id="conditions"></div>
+  </section>
+  <section class="col" id="colReasoning">
+    <h2>Картина рассуждения</h2>
+    <div class="node" data-node="feature">
+      <span class="t">Признак: обратимость</span>
+      <span class="badge" id="featureBadge">—</span>
+      <div class="d" id="featureValue">—</div>
+    </div>
+    <div class="chain">
+      <div class="step node" data-node="rule">
+        <span class="t">Правило</span>
+        <div class="d">Есть сохранённое состояние И Проверен способ восстановления И Восстановлены все оговорённые элементы → Критерий обратимости выполнен</div>
+      </div>
+      <div class="arrow">условие → правило → вывод</div>
+      <div class="step node" data-node="judgment">
+        <span class="t">Вывод</span>
+        <span class="badge" id="judgmentBadge">—</span>
+        <div class="d res" id="judgmentText">—</div>
+        <ul class="tree" id="tree"></ul>
+      </div>
+    </div>
+    <div class="node" data-node="alternative">
+      <span class="t">Альтернативный путь</span>
+      <span class="badge st-unknown">hypothesis</span>
+      <div class="d">Восстановление по журналу изменений (log-реконструкция) — не проверено.</div>
+    </div>
+  </section>
+  <section class="col" id="colResult">
+    <h2>Результат</h2>
+    <div id="resultCard">
+      <div class="verdict" id="resultVerdict">—</div>
+      <div class="reason" id="resultReason">—</div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="node" data-node="criterion">
+        <span class="t">Критерий: обратимость</span>
+        <div class="d">Состояние связей можно восстановить без потерь оговорённых элементов.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="actions">
+  <button id="btnChange">Изменить условие</button>
+  <button class="ghost" id="btnRevert">Вернуть исходное</button>
+  <button class="ghost" id="btnModel">Оспорить модель</button>
+  <span style="color:var(--muted);font-size:12px" id="actionHint">нажмите, чтобы переключить «Сохранённая версия: ЕСТЬ → НЕТ»</span>
+</div>
+
+<div id="explain">
+  <h3>Что изменилось</h3>
+  <ol id="explainList"></ol>
+</div>
+
+<div id="card">
+  <span class="close" id="cardClose">✕</span>
+  <h3 id="cardTitle">—</h3>
+  <div class="row"><b>Содержание</b><span id="cardContent">—</span></div>
+  <div class="row"><b>Основание</b><span id="cardBasis">—</span></div>
+  <div class="row"><b>Статус знания</b><span id="cardStatus">—</span></div>
+  <div class="row"><b>Условия применимости</b><span id="cardScope">—</span></div>
+</div>
+
+<script>
+// ===== БЛОК 1: случай «Обратимость изменения связей» =====
+const CASE = {
+  subject: {id:'subject', type:'subject', title:'Граф связей vault',
+    content:'Массовое изменение ссылок между заметками в vault (область: vault-maintenance).',
+    basis:'Факт: изменение уже выполнено, журнал изменений существует.',
+    knowledge_status:'established',
+    scope:'Домен vault-maintenance; применимо к графу ссылок, а не к содержимому заметок.'},
+  question: {id:'question', type:'question', title:'Вопрос',
+    content:'Можно ли восстановить прежнее состояние связей после массового изменения?',
+    basis:'Сформулирован пользователем как предмет рассуждения.',
+    knowledge_status:'asserted',
+    scope:'Один конкретный вопрос; не раскрывается на подвопросы.'}
+};
+
+// ===== БЛОК 2: бинарный признак со статусом знания =====
+// unknown НЕ является третьим значением и НЕ преобразуется в false или 0.5
+const CONDITIONS = {
+  saved_version: {id:'saved_version', title:'Сохранённая версия', value:true,
+    knowledge_status:'established',
+    basis:'Снимок графа сделан до изменения (автоматический бэкап).',
+    scope:'Снимок охватывает только связи, не содержимое заметок.'},
+  restore_method: {id:'restore_method', title:'Проверен способ восстановления', value:false,
+    knowledge_status:'unknown',
+    basis:'Восстановление не проверено: ни один способ не протестирован.',
+    scope:'Способ должен восстанавливать связи, а не только файлы.'},
+  all_elements: {id:'all_elements', title:'Восстановлены все оговорённые элементы', value:false,
+    knowledge_status:'unknown',
+    basis:'Список оговорённых элементов не составлен.',
+    scope:'Оговорённые элементы — ссылки, помеченные пользователем как критичные.'}
+};
+
+const FEATURE = {id:'feature', title:'Признак: обратимость',
+  value:null, knowledge_status:'unknown',
+  basis:'Оснований недостаточно: восстановление не проверено.',
+  scope:'Применим, когда существует способ сопоставить состояние до и после изменения.'};
+</script>
+<script>
+// ===== БЛОК 3: цепочка «условие → правило → вывод» =====
+// Правило на явных фактах с операциями И/ИЛИ/НЕ (без eval, без произвольного кода)
+const RULE = {
+  id:'rule',
+  title:'Правило: Критерий обратимости выполнен',
+  // явная структура: список условий с операциями, без eval
+  conditions:[
+    {fact:'saved_version', op:'AND', label:'Есть сохранённое состояние'},
+    {fact:'restore_method', op:'AND', label:'Проверен способ восстановления'},
+    {fact:'all_elements', op:'AND', label:'Восстановлены все оговорённые элементы'}
+  ],
+  conclusion:'Критерий обратимости выполнен'
+};
+
+// Оценка условия: возвращает true / false / unknown (unknown — отдельное состояние)
+function evalCondition(cond){
+  const c = CONDITIONS[cond.fact];
+  if(c.knowledge_status === 'unknown') return 'unknown';
+  if(c.knowledge_status === 'disputed') return 'unknown';
+  return c.value ? true : false;
+}
+
+// Оценка правила: результат — satisfied / not_satisfied / unknown / not_applicable / conflicted
+function evalRule(){
+  const results = RULE.conditions.map(evalCondition);
+  // conflicted: есть и true и false среди известных
+  const hasTrue = results.some(r => r === true);
+  const hasFalse = results.some(r => r === false);
+  if(hasTrue && hasFalse) return 'conflicted';
+  // unknown: хотя бы одно условие неизвестно (и нет конфликта)
+  if(results.some(r => r === 'unknown')) return 'unknown';
+  // все false → not_satisfied
+  if(results.every(r => r === false)) return 'not_satisfied';
+  // все true → satisfied
+  if(results.every(r => r === true)) return 'satisfied';
+  return 'unknown';
+}
+
+// Дерево объяснения: какие факты использованы, какие условия, что неизвестно
+function buildTree(){
+  const items = [];
+  RULE.conditions.forEach((cond, i) => {
+    const c = CONDITIONS[cond.fact];
+    const r = evalCondition(cond);
+    let cls = r === true ? 'ok' : r === false ? 'no' : 'un';
+    let label = r === true ? '✓ выполнено' : r === false ? '✗ не выполнено' : '? неизвестно';
+    items.push(`<li class="${cls}">${cond.label} — ${label} <span style="opacity:.6">(статус: ${c.knowledge_status})</span></li>`);
+  });
+  return items.join('');
+}
+
+// ===== БЛОК 4: «Изменить условие» =====
+let state = 'original'; // original | changed
+
+function render(){
+  const verdict = evalRule();
+  const vText = {satisfied:'satisfied', not_satisfied:'not_satisfied',
+    unknown:'unknown', not_applicable:'not_applicable', conflicted:'conflicted'}[verdict];
+
+  // Признание: обратимость
+  let fValue, fStatus, fReason;
+  if(state === 'original'){
+    fValue = 'не установлена';
+    fStatus = 'unknown';
+    fReason = 'Причина: восстановление не проверено.';
+  } else {
+    fValue = 'не установлена';
+    fStatus = 'unknown';
+    fReason = 'Причина: сохранённой версии нет, альтернативный путь не проверен.';
+  }
+  document.getElementById('featureValue').textContent = `Обратимость: ${fValue}. ${fReason}`;
+  const fb = document.getElementById('featureBadge');
+  fb.textContent = fStatus;
+  fb.className = 'badge st-' + fStatus;
+
+  // Вывод
+  document.getElementById('judgmentText').textContent = vText;
+  document.getElementById('judgmentText').className = 'd res-' + vText;
+  const jb = document.getElementById('judgmentBadge');
+  jb.textContent = vText;
+  jb.className = 'badge st-' + (vText==='satisfied'?'established':vText==='not_satisfied'?'refuted':'unknown');
+  document.getElementById('tree').innerHTML = buildTree();
+
+  // Результат
+  const rv = document.getElementById('resultVerdict');
+  const rr = document.getElementById('resultReason');
+  if(state === 'original'){
+    rv.textContent = 'unknown';
+    rv.className = 'verdict res-unknown';
+    rr.textContent = 'Обратимость: не установлена. Причина: восстановление не проверено. Сохранённая версия есть, но способ восстановления не проверен, оговорённые элементы не определены.';
+  } else {
+    rv.textContent = 'прежний вывод не установлен';
+    rv.className = 'verdict res-unknown';
+    rr.textContent = 'Отсутствие сохранённой версии НЕ означает автоматически «необратимо». Без других оснований (проверенный способ восстановления) прежний вывод не установлен. Альтернативный путь: реконструкция по журналу изменений — не проверен.';
+  }
+
+  // Условия
+  renderConditions();
+  // Объяснение
+  renderExplain();
+}
+
+function renderConditions(){
+  const el = document.getElementById('conditions');
+  el.innerHTML = '';
+  Object.values(CONDITIONS).forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'node';
+    d.dataset.node = c.id;
+    const valText = c.value === true ? 'ЕСТЬ' : c.value === false ? 'НЕТ' : '—';
+    d.innerHTML = `<span class="t">${c.title}: ${valText}</span>
+      <span class="badge st-${c.knowledge_status}">${c.knowledge_status}</span>
+      <div class="d">${c.basis}</div>`;
+    el.appendChild(d);
+  });
+}
+
+function renderExplain(){
+  const box = document.getElementById('explain');
+  const list = document.getElementById('explainList');
+  if(state === 'original'){
+    box.style.display = 'none';
+    return;
+  }
+  box.style.display = 'block';
+  list.innerHTML = `
+    <li class="changed"><b>Изменено:</b> условие «Сохранённая версия» переключено: ЕСТЬ → НЕТ.</li>
+    <li class="lost"><b>Прежнее основание перестало применяться:</b> «Есть сохранённое состояние» — условие правила больше не выполнено.</li>
+    <li class="new"><b>Результаты, изменившие статус:</b> вывод правила перешёл из unknown → «прежний вывод не установлен»; признак «обратимость» остаётся unknown (не преобразуется в false).</li>
+    <li class="alt"><b>Альтернативные пути всё ещё возможны:</b> восстановление по журналу изменений (log-реконструкция) — статус hypothesis, не проверено; если будет проверен, вывод может стать satisfied.</li>`;
+}
+
+// ===== Связи (подписаны текстом) =====
+const LINKS = [
+  {from:'saved_version', to:'rule', label:'поддерживает'},
+  {from:'restore_method', to:'rule', label:'поддерживает'},
+  {from:'all_elements', to:'rule', label:'поддерживает'},
+  {from:'rule', to:'judgment', label:'зависит от'},
+  {from:'judgment', to:'feature', label:'проверяет'},
+  {from:'alternative', to:'feature', label:'альтернативный путь к'},
+  {from:'all_elements', to:'restore_method', label:'противоречит'},
+  {from:'question', to:'subject', label:'описывает'}
+];
+
+// ===== Карточка узла =====
+const NODES = {};
+function regNode(n){ NODES[n.id] = n; }
+[CASE.subject, CASE.question, RULE,
+ Object.assign({}, CONDITIONS.saved_version, {type:'condition'}),
+ Object.assign({}, CONDITIONS.restore_method, {type:'condition'}),
+ Object.assign({}, CONDITIONS.all_elements, {type:'condition'}),
+ Object.assign({}, FEATURE, {type:'feature'}),
+ {id:'judgment', type:'judgment', title:'Вывод', content:'Результат применения правила к текущим фактам.',
+   basis:'Правило + текущие условия.', knowledge_status:'unknown', scope:'Пересчитывается при изменении условий.'},
+ {id:'criterion', type:'criterion', title:'Критерий: обратимость', content:'Состояние связей можно восстановить без потерь оговорённых элементов.',
+   basis:'Оговорено в домене vault-maintenance.', knowledge_status:'asserted', scope:'Применим к графу ссылок.'},
+ {id:'alternative', type:'alternative', title:'Альтернативный путь', content:'Восстановление по журналу изменений (log-реконструкция).',
+   basis:'Гипотеза: журнал изменений существует.', knowledge_status:'unknown', scope:'Требует проверки: журнал должен содержать полные данные о связях.'}
+].forEach(regNode);
+
+document.addEventListener('click', e => {
+  const n = e.target.closest('[data-node]');
+  if(!n) return;
+  const id = n.dataset.node;
+  const node = NODES[id] || {title:id, content:'—', basis:'—', knowledge_status:'unknown', scope:'—'};
+  document.getElementById('cardTitle').textContent = node.title;
+  document.getElementById('cardContent').textContent = node.content || '—';
+  document.getElementById('cardBasis').textContent = node.basis || '—';
+  document.getElementById('cardStatus').textContent = node.knowledge_status || 'unknown';
+  document.getElementById('cardScope').textContent = node.scope || '—';
+  document.getElementById('card').style.display = 'block';
+});
+document.getElementById('cardClose').onclick = () =>
+  document.getElementById('card').style.display = 'none';
+
+// ===== БЛОК 4: переключение =====
+document.getElementById('btnChange').onclick = () => {
+  if(state === 'original'){
+    CONDITIONS.saved_version.value = false;
+    CONDITIONS.saved_version.knowledge_status = 'established';
+    CONDITIONS.saved_version.basis = 'Снимок удалён: сохранённой версии нет.';
+    state = 'changed';
+    document.getElementById('btnChange').textContent = 'Условие изменено';
+    document.getElementById('actionHint').textContent = 'нажмите «Вернуть исходное», чтобы откатить';
+  }
+  render();
+};
+document.getElementById('btnRevert').onclick = () => {
+  CONDITIONS.saved_version.value = true;
+  CONDITIONS.saved_version.knowledge_status = 'established';
+  CONDITIONS.saved_version.basis = 'Снимок графа сделан до изменения (автоматический бэкап).';
+  state = 'original';
+  document.getElementById('btnChange').textContent = 'Изменить условие';
+  document.getElementById('actionHint').textContent = 'нажмите, чтобы переключить «Сохранённая версия: ЕСТЬ → НЕТ»';
+  render();
+};
+document.getElementById('btnModel').onclick = () => {
+  alert('Ветвление модели («Оспорить модель») — кнопка есть, логика не реализована в этом прототипе.');
+};
+
+render();
+</script>
+</body>
+</html>
